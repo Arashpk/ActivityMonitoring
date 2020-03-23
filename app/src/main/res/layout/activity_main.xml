@@ -7,12 +7,33 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:id="@+id/label_AccelerometerX"
+        android:layout_width="200dp"
+        android:layout_height="20dp"
+        android:text="@string/label_accelerometer_x"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/label_AccelerometerY"
+        android:layout_width="200dp"
+        android:layout_height="20dp"
+        android:text="@string/label_accelerometer_y"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/label_AccelerometerX">
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/label_AccelerometerZ"
+        android:layout_width="200dp"
+        android:layout_height="20dp"
+        android:text="@string/label_accelerometer_z"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/label_AccelerometerY">
+
+    </TextView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
