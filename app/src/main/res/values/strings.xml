@@ -1,8 +1,17 @@
 <resources>
     <string name="app_name">ActivityMonitoring</string>
+    <string name="error_no_sensor">No sensor</string>
+
     <string name="label_accelerometer_x">Accelerometer X: %1$.4f</string>
     <string name="label_accelerometer_y">Accelerometer Y: %1$.4f</string>
     <string name="label_accelerometer_z">Accelerometer Z: %1$.4f</string>
 
-    <string name="error_no_sensor">No sensor</string>
+    <string name="label_gyro_x">Gyro X: %1$.4f</string>
+    <string name="label_gyro_y">Gyro Y: %1$.4f</string>
+    <string name="label_gyro_z">Gyro Z: %1$.4f</string>
+    <string name="label_magno_x">Magno X: %1$.4f</string>
+    <string name="label_magno_y">Magno Y: %1$.4f</string>
+    <string name="label_magno_z">Magno Z: %1$.4f</string>
+    <string name="label_magno_z_rotation">Magno X: %1$.4f</string>
+
 </resources>

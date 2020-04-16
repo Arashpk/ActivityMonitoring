@@ -8,15 +8,12 @@
 
     <Button
         android:id="@+id/button_record"
-        android:text="Start Recording"
         android:layout_width="200dp"
         android:layout_height="40dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         android:onClick="startRecordingButtonClick"
-        app:layout_constraintTop_toTopOf="parent" />
-
+        android:text="Start Recording"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/button_stop"
@@ -25,11 +22,72 @@
         android:onClick="stopRecordingButtonClick"
         android:text="Stop Recording"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/button_record" />
+
+
+    <RadioGroup
+        android:id="@+id/radioGroupRecordAnalyze"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button_record"
-        app:layout_constraintVertical_bias=".1" />
+        app:layout_constraintStart_toEndOf="@+id/label_AccelerometerY"
+        app:layout_constraintTop_toBottomOf="@+id/radioGroupDAQ">
+
+        <RadioButton
+            android:id="@+id/radio_record"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="checkRadioButtonRecordingOrAnalyze"
+            android:text="Record" />
+
+        <RadioButton
+            android:id="@+id/radio_analyze"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="checkRadioButtonRecordingOrAnalyze"
+            android:text="Analyze" />
+
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/radioGroupDAQ"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/label_AccelerometerY"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <RadioButton
+            android:id="@+id/radio_fastest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="checkRadioButton"
+            android:text="DAQ Fastest" />
+
+
+        <RadioButton
+            android:id="@+id/radio_gaming"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="checkRadioButton"
+            android:text="DAQ Gaming" />
+
+
+        <RadioButton
+            android:id="@+id/radio_normal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="checkRadioButton"
+            android:text="DAQ Normal" />
+
+        <RadioButton
+            android:id="@+id/radio_UI"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="checkRadioButton"
+            android:text="DAQ UI" />
+
+    </RadioGroup>
 
     <TextView
         android:id="@+id/label_AccelerometerY"
@@ -60,5 +118,77 @@
         app:layout_constraintTop_toTopOf="parent">
 
     </TextView>
+
+    <TextView
+        android:id="@+id/label_GyroX"
+        android:layout_width="200dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/label_gyro_x"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/label_AccelerometerZ">
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/label_GyroY"
+        android:layout_width="200dp"
+        android:layout_height="20dp"
+        android:text="@string/label_gyro_y"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/label_GyroX">
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/label_GyroZ"
+        android:layout_width="200dp"
+        android:layout_height="20dp"
+        android:text="@string/label_gyro_z"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/label_GyroY">
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/label_MagnoX"
+        android:layout_width="200dp"
+        android:layout_height="20dp"
+        android:layout_marginTop="28dp"
+        android:text="@string/label_magno_x"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/label_GyroZ">
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/label_MagnoY"
+        android:layout_width="200dp"
+        android:layout_height="20dp"
+        android:text="@string/label_magno_y"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/label_MagnoX">
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/label_MagnoZ"
+        android:layout_width="200dp"
+        android:layout_height="20dp"
+        android:text="@string/label_magno_z"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/label_MagnoY">
+
+    </TextView>
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graph"
+        android:layout_width="301dp"
+        android:layout_height="224dp"
+        app:layout_constraintBottom_toTopOf="@+id/button_record"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/label_MagnoZ" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
