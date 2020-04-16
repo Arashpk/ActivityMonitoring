@@ -183,12 +183,20 @@
 
     <com.jjoe64.graphview.GraphView
         android:id="@+id/graph"
-        android:layout_width="301dp"
-        android:layout_height="224dp"
-        app:layout_constraintBottom_toTopOf="@+id/button_record"
+        android:layout_width="365dp"
+        android:layout_height="115dp"
+        android:layout_marginBottom="24dp"
+        app:layout_constraintBottom_toTopOf="@+id/graphFFT"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/label_MagnoZ" />
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graphFFT"
+        android:layout_width="369dp"
+        android:layout_height="148dp"
+        app:layout_constraintBottom_toTopOf="@+id/button_stop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
