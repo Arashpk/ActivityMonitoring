@@ -21,13 +21,20 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.paramsen.noise.Noise;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -58,13 +65,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int sampleCount = 0;
     int windowLength = 50;
     int Fs = 40;
+    int FEATURE_LENGTH = 12, SAMPLE_LENGTH = 118;
+    double realTimeFeature[] = new double[FEATURE_LENGTH];
+    double[][] trainedSampleTable = new double[SAMPLE_LENGTH][FEATURE_LENGTH];
+    String[] categoryArray = new String[SAMPLE_LENGTH];
+    List<String> ActivityTypes = Arrays.asList("downstairs", "jogging", "running", "standing", "upstairs", "walking");
     // Signal features
     float acc_X_array[] = new float[windowLength];
     float acc_Y_array[] = new float[windowLength];
     float acc_Z_array[] = new float[windowLength];
     double acc_X_DC = 0, acc_Y_DC = 0, acc_Z_DC = 0;
     double acc_X_variance = 0, acc_Y_variance = 0, acc_Z_variance = 0;
-    double acc_X_std = 0,acc_Y_std = 0,acc_Z_std = 0;
+    double acc_X_std = 0, acc_Y_std = 0, acc_Z_std = 0;
     // Radio
     RadioGroup radiogroupDAQ;
     RadioGroup radiogroupRecord;
@@ -153,12 +165,51 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             TextSensorMagno_Z.setText(sensor_error);
             TextSensorMagno_Z_rotation.setText(sensor_error);
         }
+        readReferenceCSV();
     }
+
+    private void readReferenceCSV() {
+        InputStream is = getResources().openRawResource(R.raw.reference);
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(is, Charset.forName("UTF-8"))
+        );
+        String line = "";
+        int offset = 2;
+        int i = 0;
+
+        try {
+            for (int sampleLine = 0; sampleLine < SAMPLE_LENGTH; sampleLine++) {
+                // row offset
+                while (i < offset) {
+                    i++;
+                    line = reader.readLine();
+                }
+                // Split by ','
+                String[] tokens = line.split(",");
+                // Read the Category
+                categoryArray[sampleLine] = tokens[0];
+                // Read the table data
+                for (int Col = 0; Col < 12; Col++) {
+                    double currentFeature = Double.parseDouble(tokens[Col + 1]);
+                    trainedSampleTable[sampleLine][Col] = currentFeature;
+                }
+                TrainingSample sample = new TrainingSample();
+                line = reader.readLine();
+
+            }
+            //Log.d("My Activity", "Just created trainign sample");
+        } catch (IOException e) {
+            Log.wtf("MyActivity", "Error reading file on line " + line, e);
+            e.printStackTrace();
+        }
+
+
+    }
+
 
     @Override
     protected void onStart() {
         super.onStart();
-
         if ((SensorAccelerometer != null) && (SensorGyro != null) && (SensorMagno != null)) {
             switch (daqSPEED) {
                 case 0:
@@ -255,6 +306,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         } else {
         }
     }
+
 
     public void analyze(View v) {
         Timer analyzeTimer = new Timer();
@@ -367,6 +419,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 acc_Z_Frq_max = ((i * Fs) / Double.valueOf(windowLength));
             }
         }
+        // Load seperated features in a single array
+        realTimeFeature[0] = acc_X_DC;
+        realTimeFeature[1] = acc_Y_DC;
+        realTimeFeature[2] = acc_Z_DC;
+        realTimeFeature[3] = acc_X_Mag_max;
+        realTimeFeature[4] = acc_X_Frq_max;
+        realTimeFeature[5] = acc_Y_Mag_max;
+        realTimeFeature[6] = acc_Y_Frq_max;
+        realTimeFeature[7] = acc_Z_Mag_max;
+        realTimeFeature[8] = acc_Z_Frq_max;
+        realTimeFeature[9] = acc_X_std;
+        realTimeFeature[10] = acc_Y_std;
+        realTimeFeature[11] = acc_Z_std;
+
+        Double[] EuclideanDistanceArray = EuclideanDistance(realTimeFeature, trainedSampleTable, categoryArray);
+        Double[] ManhattanDistanceArray = ManhattanDistance(realTimeFeature, trainedSampleTable, categoryArray);
+        int K = 5;
+        kNN(EuclideanDistanceArray, ManhattanDistanceArray, categoryArray, K);
         //Log.i("frq", String.valueOf(acc_X_Mag_max) + "  " + String.valueOf(acc_X_Frq_max));
         //Log.i("frq", String.valueOf(acc_Y_Mag_max) + "  " + String.valueOf(acc_Y_Frq_max));
         //Log.i("frq", String.valueOf(acc_Z_Mag_max) + "  " + String.valueOf(acc_Z_Frq_max));
@@ -374,7 +444,91 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         graphFFT.addSeries(series_FFT_X);
         graphFFT.addSeries(series_FFT_Y);
         graphFFT.addSeries(series_FFT_Z);
+    }
 
+    private void kNN(Double[] euclideanDistanceArray, Double[] manhattanDistanceArray, String[] categoryArray, int k) {
+
+        ArrayList<Double> euclideanDistanceList = new ArrayList<Double>(Arrays.asList(euclideanDistanceArray));
+        ArrayList<Double> manhattanDistanceList = new ArrayList<Double>(Arrays.asList(manhattanDistanceArray));
+
+        int featureLength = realTimeFeature.length;
+        int categoryLength = categoryArray.length;
+        String[] selectedCategoriesEU = new String[k];
+        Double[] nearestNeighborsEU = new Double[k];
+        Integer[] nearestNeighborsIndexEU = new Integer[k];
+
+        String[] selectedCategoriesMAN = new String[k];
+        Double[] nearestNeighborsMAN = new Double[k];
+        Integer[] nearestNeighborsIndexMAN = new Integer[k];
+
+        for (int i = 0; i < k; i++) {
+            Double min = Collections.min(euclideanDistanceList);
+            int minIndex = euclideanDistanceList.indexOf(min);
+            nearestNeighborsEU[i] = min;
+            nearestNeighborsIndexEU[i] = minIndex;
+            selectedCategoriesEU[i] = categoryArray[minIndex];
+            euclideanDistanceList.remove(minIndex);
+        }
+        for (int i = 0; i < k; i++) {
+            Double min = Collections.min(manhattanDistanceList);
+            int minIndex = manhattanDistanceList.indexOf(min);
+            nearestNeighborsMAN[i] = min;
+            nearestNeighborsIndexMAN[i] = minIndex;
+            selectedCategoriesMAN[i] = categoryArray[minIndex];
+            euclideanDistanceList.remove(minIndex);
+        }
+
+        ArrayList<String> selectedCategoriesEUList = new ArrayList<String>(Arrays.asList(selectedCategoriesEU));
+        ArrayList<String> selectedCategoriesMANList = new ArrayList<String>(Arrays.asList(selectedCategoriesMAN));
+
+        List<Integer> votingArrayEU = new ArrayList<Integer>();
+        List<Integer> votingArrayMAN = new ArrayList<Integer>();
+        for (int i = 0; i < ActivityTypes.size(); i++) {
+            int frqOfActivity = Collections.frequency(selectedCategoriesEUList, ActivityTypes.get(i));
+            votingArrayEU.add(i, frqOfActivity);
+        }
+        for (int i = 0; i < ActivityTypes.size(); i++) {
+            int frqOfActivity = Collections.frequency(selectedCategoriesMANList, ActivityTypes.get(i));
+            votingArrayMAN.add(i, frqOfActivity);
+        }
+        int finalVoteEUIndex = Collections.max(votingArrayEU);
+        int finalVoteMANIndex = Collections.max(votingArrayMAN);
+        String finalVoteEUstring = ActivityTypes.get(votingArrayEU.indexOf(finalVoteEUIndex));
+        String finalVoteMANstring = ActivityTypes.get(votingArrayMAN.indexOf(finalVoteMANIndex));
+    }
+
+    private Double[] EuclideanDistance(double[] realTimeFeature, double[][] trainedSampleTable, String[] categoryArray) {
+        int featureLength = realTimeFeature.length;
+        int categoryLength = categoryArray.length;
+        Double[] EuclideanDistanceArray = new Double[categoryLength];
+
+        for (int row = 0; row < categoryLength; row++) {
+            //calculate the Euclidean distance
+            double EuclideanDistance = 0;
+            for (int i = 0; i < featureLength; i++) {
+                EuclideanDistance = EuclideanDistance + Math.pow(realTimeFeature[i] - trainedSampleTable[row][i], 2);
+            }
+            EuclideanDistance = Math.sqrt(EuclideanDistance);
+            EuclideanDistanceArray[row] = EuclideanDistance;
+
+        }
+        return EuclideanDistanceArray;
+    }
+
+    private Double[] ManhattanDistance(double[] realTimeFeature, double[][] trainedSampleTable, String[] categoryArray) {
+        int featureLength = realTimeFeature.length;
+        int categoryLength = categoryArray.length;
+        Double[] ManhattanDistanceArray = new Double[categoryLength];
+
+        for (int row = 0; row < categoryLength; row++) {
+            //calculate the Manhattan distance
+            double ManhattanDistance = 0;
+            for (int i = 0; i < featureLength; i++) {
+                ManhattanDistance = ManhattanDistance + Math.abs(realTimeFeature[i] - trainedSampleTable[row][i]);
+            }
+            ManhattanDistanceArray[row] = ManhattanDistance;
+        }
+        return ManhattanDistanceArray;
     }
 
     @Override
